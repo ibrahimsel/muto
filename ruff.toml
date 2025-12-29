@@ -1,0 +1,42 @@
+line-length = 100
+target-version = "py310"
+src = ["src"]
+extend-exclude = [
+  "build",
+  "log",
+  "docs/_build",
+  "**/.venv",
+  "**/venv",
+  "**/__pycache__",
+  "**/*.egg-info",
+]
+
+[lint]
+select = [
+  "E",
+  "F",
+  "W",
+  "I",
+  "B",
+  "UP",
+  "C4",
+  "SIM",
+  "PL",
+  "RUF",
+]
+ignore = [
+  "E203",
+  "E266",
+]
+fixable = ["ALL"]
+
+[lint.per-file-ignores]
+"test/**/*.py" = ["PLR2004"]
+
+[format]
+indent-style = "space"
+quote-style = "double"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = 100

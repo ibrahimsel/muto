@@ -13,9 +13,9 @@ It is designed to provide an an adaptive framework and that allows for dynamical
 
 Eclipse Muto bridges the gap between traditional ROS development and modern cloud-native orchestration by providing a **model-based approach** to robot software management. Unlike conventional deployment methods that require manual intervention and physical access to devices, Muto enables declarative stack definitions that can be managed, versioned, and deployed remotely across entire robot fleets.
 
-It is Adaptive; Muto is a context aware software solution to address some of the runtime adaptivity challenges in autonomous and robotic platforms. Adaptive Muto stacks support connected architectures for autonomous and software-defined vehicles, including supporting cloud-based apps and services that can dynamically change.  
+It is Adaptive; Muto is a context aware software solution to address some of the runtime adaptivity challenges in autonomous and robotic platforms. Adaptive Muto stacks support connected architectures for autonomous and software-defined vehicles, including supporting cloud-based apps and services that can dynamically change.
 
-It is Extensible; Muto is built on an extensible architecture. Similar to plugins and the extension points that are foundational to Eclipse extensibility. many of Muto's functionality are implemented as plugins that you can easily replace and modify for your requirements. You can add new ROS nodes for controlling, monitoring, composing and adapting vehicle behavior as plugins. 
+It is Extensible; Muto is built on an extensible architecture. Similar to plugins and the extension points that are foundational to Eclipse extensibility. many of Muto's functionality are implemented as plugins that you can easily replace and modify for your requirements. You can add new ROS nodes for controlling, monitoring, composing and adapting vehicle behavior as plugins.
 
 
 ## Key Features
@@ -68,7 +68,7 @@ All folder under the src/ folder are [GIT modules](https://git-scm.com/docs/gitm
 ## Target Use Cases
 
 - **Autonomous Vehicle Fleets**: Centralized management of software stacks across vehicle fleets
-- **Industrial Robotics**: Coordinated updates and configuration management for factory robots  
+- **Industrial Robotics**: Coordinated updates and configuration management for factory robots
 - **Service Robotics**: Remote deployment and monitoring of service robot applications
 - **Research & Development**: Rapid prototyping and deployment of experimental ROS stacks
 - **Edge Computing**: Integration of robotic systems with edge computing infrastructure
@@ -80,6 +80,13 @@ Eclipse Muto is licensed under the [Eclipse Public License 2.0](LICENSE).
 ## Contributing
 
 We welcome contributions to Eclipse Muto! Please see our [Developer Guide](./docs/developer_guide/readme.md) for detailed information on how to contribute, including:
+
+### Code Quality Workflow
+
+- Install the tooling once per clone: `pip install pre-commit`.
+- Enable the hooks so both `pre-commit` and `pre-push` run automatically: `pre-commit install --hook-type pre-commit --hook-type pre-push`.
+- Formatting is enforced by `ruff format`, and linting is handled by `ruff` using the rules defined in `ruff.toml`. The hooks will auto-fix what they can on commit and block pushes if issues remain.
+- Before sending larger changes, you can validate everything locally with `pre-commit run --all-files` to avoid CI noise.
 
 ## Community
 

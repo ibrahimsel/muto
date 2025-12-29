@@ -1,0 +1,32 @@
+minimum_pre_commit_version: '3.5.0'
+default_install_hook_types:
+  - pre-commit
+  - pre-push
+default_stages:
+  - pre-commit
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.7
+    hooks:
+      - id: ruff-format
+        name: ruff format (apply)
+        stages: [pre-commit]
+      - id: ruff-format
+        name: ruff format (check)
+        stages: [pre-push]
+        args: ['--check']
+      - id: ruff
+        name: ruff lint (fix)
+        args: ['--fix', '--exit-non-zero-on-fix']
+        stages: [pre-commit]
+      - id: ruff
+        name: ruff lint (verify)
+        stages: [pre-push]
+        args: ['--no-fix']
