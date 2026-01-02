@@ -1,0 +1,96 @@
+[build-system]
+requires = ["setuptools>=68.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eclipse-muto"
+version = "0.0.0"
+description = "Eclipse Muto developer workspace."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Composiv.ai", email = "info@composiv.ai" },
+]
+keywords = ["ros2", "robotics", "orchestration"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/eclipse-muto/muto"
+
+[project.optional-dependencies]
+dev = [
+  "pre-commit>=3.5",
+  "ruff>=0.5.7",
+  "mypy>=1.10",
+  "pytest>=7.4",
+  "pytest-cov>=4.1",
+]
+
+[tool.setuptools]
+packages = ["muto"]
+include-package-data = false
+
+[tool.setuptools.package-dir]
+"" = "."
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "muto"]
+extend-exclude = [
+  "build",
+  "install",
+  "log",
+  "docs/_build",
+  "**/.venv",
+  "**/venv",
+  "**/__pycache__",
+  "**/*.egg-info",
+]
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "W",
+  "I",
+  "B",
+  "UP",
+  "C4",
+  "SIM",
+  "PL",
+  "RUF",
+]
+ignore = [
+  "E203",
+  "E266",
+]
+fixable = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"test/**/*.py" = ["PLR2004"]
+
+[tool.ruff.format]
+indent-style = "space"
+quote-style = "double"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = 100
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_return_any = true
+show_error_codes = true
+pretty = true
+exclude = "(build|dist|install|log|test|docs|_build|\\.venv|\\.mypy_cache|\\.ruff_cache|__pycache__|.*\\.egg-info|setup.py|.*\\.pyc)"
+files = ["muto"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.1",
+]

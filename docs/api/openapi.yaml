@@ -1,0 +1,1180 @@
+openapi: 3.0.3
+info:
+  title: Eclipse Muto Fleet Backend API
+  version: 1.0.0
+  description: |
+    OpenAPI draft for the dashboard backend. This file is a contract anchor and
+    should evolve as the backend implementation matures.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Vehicles
+  - name: DesiredStates
+  - name: Releases
+  - name: Rollouts
+  - name: Reports
+  - name: Audit
+paths:
+  /vehicles:
+    get:
+      tags:
+        - Vehicles
+      summary: List vehicles
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+          example: 20
+        - name: model
+          in: query
+          schema:
+            type: string
+        - name: region
+          in: query
+          schema:
+            type: string
+        - name: ring
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/VehicleStatus'
+        - name: search
+          in: query
+          description: Case-insensitive match on vehicle id.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paged vehicles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehiclesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Vehicles
+      summary: Create a vehicle
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleCreateRequest'
+      responses:
+        '200':
+          description: Vehicle created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/BadRequest'
+  /vehicles/{id}:
+    get:
+      tags:
+        - Vehicles
+      summary: Get a vehicle by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vehicle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags:
+        - Vehicles
+      summary: Update a vehicle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleUpdateRequest'
+      responses:
+        '200':
+          description: Vehicle updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /vehicles/{id}/status:
+    post:
+      tags:
+        - Vehicles
+      summary: Update vehicle status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleStatusUpdate'
+      responses:
+        '200':
+          description: Vehicle status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /vehicles/{id}/events:
+    post:
+      tags:
+        - Vehicles
+      summary: Append a vehicle timeline event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleEventRequest'
+      responses:
+        '200':
+          description: Vehicle updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /desired-states:
+    post:
+      tags:
+        - DesiredStates
+      summary: Create a desired state
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DesiredStateRequest'
+      responses:
+        '200':
+          description: Desired state created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesiredStateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /desired-states/{revision}:
+    get:
+      tags:
+        - DesiredStates
+      summary: Get a desired state by revision
+      parameters:
+        - name: revision
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Desired state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesiredStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /desired-states/latest:
+    get:
+      tags:
+        - DesiredStates
+      summary: Get the latest desired state for a vehicle
+      parameters:
+        - name: vehicleId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Desired state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesiredStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /releases:
+    get:
+      tags:
+        - Releases
+      summary: List releases
+      parameters:
+        - name: stack
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        '200':
+          description: Releases
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleasesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Releases
+      summary: Create a release
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseRequest'
+      responses:
+        '200':
+          description: Release created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /releases/{stack}/{version}:
+    get:
+      tags:
+        - Releases
+      summary: Get a release by stack and version
+      parameters:
+        - name: stack
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Release
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /rollouts:
+    get:
+      tags:
+        - Rollouts
+      summary: List rollouts
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/RolloutStatus'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        '200':
+          description: Rollouts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RolloutsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Rollouts
+      summary: Initiate a rollout
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeploymentConfig'
+      responses:
+        '200':
+          description: Rollout created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RolloutResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /rollouts/{id}:
+    get:
+      tags:
+        - Rollouts
+      summary: Get a rollout by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Rollout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RolloutResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /rollouts/{id}/pause:
+    post:
+      tags:
+        - Rollouts
+      summary: Pause a rollout
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Rollout paused
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RolloutResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /rollouts/{id}/rollback:
+    post:
+      tags:
+        - Rollouts
+      summary: Roll back a rollout
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Rollout rolled back
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RolloutResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /reports/reconcile:
+    get:
+      tags:
+        - Reports
+      summary: Get reconcile report for a vehicle
+      parameters:
+        - name: vehicleId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reconcile report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconcileReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - Reports
+      summary: Submit reconcile report for a vehicle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReconcileReport'
+      responses:
+        '200':
+          description: Reconcile report stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconcileReportResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /reports/health:
+    get:
+      tags:
+        - Reports
+      summary: Get health report for a vehicle
+      parameters:
+        - name: vehicleId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Health report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+        - Reports
+      summary: Submit health report for a vehicle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HealthReport'
+      responses:
+        '200':
+          description: Health report stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthReportResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /audit-log:
+    get:
+      tags:
+        - Audit
+      summary: List audit log entries
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+        - name: actor
+          in: query
+          schema:
+            type: string
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: correlationId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ApiMetadata:
+      type: object
+      properties:
+        page:
+          type: integer
+        totalPages:
+          type: integer
+        totalItems:
+          type: integer
+    EnvelopeBase:
+      type: object
+      required:
+        - data
+        - timestamp
+      properties:
+        data: {}
+        metadata:
+          $ref: '#/components/schemas/ApiMetadata'
+        timestamp:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - timestamp
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+    VehicleStatus:
+      type: string
+      enum:
+        - converged
+        - applying
+        - blocked
+        - failed
+        - offline
+        - pending
+        - rolled_back
+    TimelineEventType:
+      type: string
+      enum:
+        - desired_notified
+        - apply_start
+        - ready
+        - failed
+        - blocked
+    SafetySnapshot:
+      type: object
+      properties:
+        moving:
+          type: boolean
+        autonomyMode:
+          type: string
+        battery:
+          type: integer
+          minimum: 0
+          maximum: 100
+        window:
+          type: boolean
+    TimelineEvent:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        event:
+          $ref: '#/components/schemas/TimelineEventType'
+        details:
+          type: string
+        reasonCodes:
+          type: array
+          items:
+            type: string
+    Vehicle:
+      type: object
+      properties:
+        id:
+          type: string
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+        desiredStack:
+          type: string
+        desiredRevision:
+          type: string
+        actualStack:
+          type: string
+        actualRevision:
+          type: string
+        status:
+          $ref: '#/components/schemas/VehicleStatus'
+        lastSeenAt:
+          type: string
+          format: date-time
+        reasonCodes:
+          type: array
+          items:
+            type: string
+        safetySnapshot:
+          $ref: '#/components/schemas/SafetySnapshot'
+        timeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineEvent'
+        desiredState:
+          type: object
+          additionalProperties: true
+        latestReport:
+          type: object
+          additionalProperties: true
+    VehicleCreateRequest:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+        desiredStack:
+          type: string
+        desiredRevision:
+          type: string
+        actualStack:
+          type: string
+        actualRevision:
+          type: string
+        status:
+          $ref: '#/components/schemas/VehicleStatus'
+        lastSeenAt:
+          type: string
+          format: date-time
+        reasonCodes:
+          type: array
+          items:
+            type: string
+        safetySnapshot:
+          $ref: '#/components/schemas/SafetySnapshot'
+    VehicleUpdateRequest:
+      type: object
+      properties:
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+        desiredStack:
+          type: string
+        desiredRevision:
+          type: string
+        actualStack:
+          type: string
+        actualRevision:
+          type: string
+        status:
+          $ref: '#/components/schemas/VehicleStatus'
+        lastSeenAt:
+          type: string
+          format: date-time
+        reasonCodes:
+          type: array
+          items:
+            type: string
+        safetySnapshot:
+          $ref: '#/components/schemas/SafetySnapshot'
+    VehicleStatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/VehicleStatus'
+        reasonCodes:
+          type: array
+          items:
+            type: string
+        safetySnapshot:
+          $ref: '#/components/schemas/SafetySnapshot'
+        lastSeenAt:
+          type: string
+          format: date-time
+    VehicleEventRequest:
+      type: object
+      required:
+        - event
+      properties:
+        event:
+          $ref: '#/components/schemas/TimelineEventType'
+        details:
+          type: string
+        reasonCodes:
+          type: array
+          items:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+    Release:
+      type: object
+      properties:
+        id:
+          type: string
+        stack:
+          type: string
+        version:
+          type: string
+        digest:
+          type: string
+        compatibility:
+          type: string
+        signaturePresent:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    ReleaseRequest:
+      type: object
+      required:
+        - stack
+        - version
+      properties:
+        stack:
+          type: string
+        version:
+          type: string
+        digest:
+          type: string
+        compatibility:
+          type: string
+        signaturePresent:
+          type: boolean
+    RolloutStatus:
+      type: string
+      enum:
+        - active
+        - paused
+        - completed
+        - rolled_back
+    CanaryStatus:
+      type: string
+      enum:
+        - pending
+        - converged
+        - failed
+    WaveStatus:
+      type: string
+      enum:
+        - pending
+        - active
+        - completed
+        - failed
+    RolloutCanary:
+      type: object
+      properties:
+        perGroup:
+          type: integer
+        status:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/CanaryStatus'
+    RolloutWave:
+      type: object
+      properties:
+        percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        status:
+          $ref: '#/components/schemas/WaveStatus'
+    RolloutProgress:
+      type: object
+      properties:
+        total:
+          type: integer
+        converged:
+          type: integer
+        applying:
+          type: integer
+        blocked:
+          type: integer
+        failed:
+          type: integer
+    RolloutGates:
+      type: object
+      properties:
+        canaryHealthy:
+          type: boolean
+        failureThreshold:
+          type: boolean
+        safetyChecks:
+          type: boolean
+    Rollout:
+      type: object
+      properties:
+        id:
+          type: string
+        stackVersion:
+          type: string
+        selector:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        status:
+          $ref: '#/components/schemas/RolloutStatus'
+        canary:
+          $ref: '#/components/schemas/RolloutCanary'
+        wave:
+          $ref: '#/components/schemas/RolloutWave'
+        progress:
+          $ref: '#/components/schemas/RolloutProgress'
+        gates:
+          $ref: '#/components/schemas/RolloutGates'
+    SafetyPolicy:
+      type: object
+      properties:
+        applyWindow:
+          type: string
+        requireStationary:
+          type: boolean
+        denyAutonomousMode:
+          type: boolean
+        minBattery:
+          type: integer
+          minimum: 0
+          maximum: 100
+    DeploymentConfig:
+      type: object
+      properties:
+        stackVersion:
+          type: string
+        selector:
+          type: string
+        vehicleList:
+          type: array
+          items:
+            type: string
+        safetyPolicy:
+          $ref: '#/components/schemas/SafetyPolicy'
+        canaryPerGroup:
+          type: integer
+        wavePercent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        comment:
+          type: string
+      description: |
+        Provide either selector or vehicleList for target selection.
+    DesiredStateRequest:
+      type: object
+      properties:
+        stackVersion:
+          type: string
+        selector:
+          type: string
+        vehicleList:
+          type: array
+          items:
+            type: string
+        safetyPolicy:
+          $ref: '#/components/schemas/SafetyPolicy'
+        comment:
+          type: string
+      description: |
+        Desired state shape is domain-specific; this is a minimal stub.
+    DesiredState:
+      type: object
+      properties:
+        id:
+          type: string
+        stackVersion:
+          type: string
+        selector:
+          type: string
+        vehicleList:
+          type: array
+          items:
+            type: string
+        safetyPolicy:
+          $ref: '#/components/schemas/SafetyPolicy'
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        comment:
+          type: string
+        spec:
+          type: object
+          additionalProperties: true
+    ReconcileReport:
+      type: object
+      properties:
+        vehicleId:
+          type: string
+        actualStack:
+          type: string
+        actualRevision:
+          type: string
+        status:
+          $ref: '#/components/schemas/VehicleStatus'
+        reasonCodes:
+          type: array
+          items:
+            type: string
+        lastSeenAt:
+          type: string
+          format: date-time
+        safetySnapshot:
+          $ref: '#/components/schemas/SafetySnapshot'
+        raw:
+          type: object
+          additionalProperties: true
+    HealthReport:
+      type: object
+      properties:
+        vehicleId:
+          type: string
+        lastSeenAt:
+          type: string
+          format: date-time
+        safetySnapshot:
+          $ref: '#/components/schemas/SafetySnapshot'
+        raw:
+          type: object
+          additionalProperties: true
+    AuditLogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        actor:
+          type: string
+        action:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        correlationId:
+          type: string
+    VehicleResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Vehicle'
+    VehiclesResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Vehicle'
+    ReleaseResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Release'
+    ReleasesResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Release'
+    RolloutResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Rollout'
+    RolloutsResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Rollout'
+    DesiredStateResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DesiredState'
+    ReconcileReportResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ReconcileReport'
+    HealthReportResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/HealthReport'
+    AuditLogResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/AuditLogEntry'

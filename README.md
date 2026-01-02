@@ -85,7 +85,7 @@ We welcome contributions to Eclipse Muto! Please see our [Developer Guide](./doc
 
 - Install the tooling once per clone: `pip install pre-commit`.
 - Enable the hooks so both `pre-commit` and `pre-push` run automatically: `pre-commit install --hook-type pre-commit --hook-type pre-push`.
-- Formatting is enforced by `ruff format`, and linting is handled by `ruff` using the rules defined in `ruff.toml`. The hooks will auto-fix what they can on commit and block pushes if issues remain.
+- Formatting is enforced by `ruff format`, linting is handled by `ruff`, and strict type checks run via `mypy` using the rules in `pyproject.toml`. The hooks will auto-fix what they can on commit and block pushes if issues remain.
 - Before sending larger changes, you can validate everything locally with `pre-commit run --all-files` to avoid CI noise.
 
 ## Community
