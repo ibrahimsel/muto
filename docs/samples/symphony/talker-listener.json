@@ -2,10 +2,8 @@
   "name": "demo-stack",
   "version": "1.0.0",
   "artifact_uri": "http://localhost:8000/sample-stack-1.0.0.tar.gz",
-  "checksum": "sha256:bab497f08438ae53c76b4cbb38d5bef1662c4692aa8b6325f14371a8602f46f7",
-  "start_command": "ros2 launch talker-listener talker-listener.launch.py",
-  "working_directory": ".",
-  "environment": {
-    "ROS_DOMAIN_ID": "42"
-  }
+  "checksum": "sha256:1faae8afb61e4b0b7ef0c81374e70edec2b60d73f090c5a696c93a6dd479829d",
+  "start_command": "./run.sh",
+  "stop_command": "pkill -f run.sh",
+  "working_directory": "."
 }

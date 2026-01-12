@@ -41,7 +41,7 @@
     symphony_client_id: "symphony"
     symphony_request_topic: "coa-request"
     symphony_response_topic: "coa-response"
-    symphony_timeout_seconds: "30"
+    symphony_timeout_seconds: 30
     symphony_auto_register: False
 
 

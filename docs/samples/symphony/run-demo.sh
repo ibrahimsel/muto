@@ -154,12 +154,12 @@ show_agent_command() {
     echo "Run this command in a separate terminal to start the agent:"
     echo ""
     echo -e "${YELLOW}cd $REPO_ROOT/src/agent${NC}"
-    echo -e "${YELLOW}MUTO_CONFIG=$SCRIPT_DIR/demo-config.json python3 -m agent.device_agent${NC}"
+    echo -e "${YELLOW}MUTO_CONFIG=$SCRIPT_DIR/demo-config.json python3 -m agent.muto_agent${NC}"
     echo ""
     echo "Or with virtual environment:"
     echo -e "${YELLOW}cd $REPO_ROOT/src/agent${NC}"
     echo -e "${YELLOW}source venv/bin/activate${NC}"
-    echo -e "${YELLOW}MUTO_CONFIG=$SCRIPT_DIR/demo-config.json python3 -m agent.device_agent${NC}"
+    echo -e "${YELLOW}MUTO_CONFIG=$SCRIPT_DIR/demo-config.json python3 -m agent.muto_agent${NC}"
 }
 
 trigger_deployment() {
