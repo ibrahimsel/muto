@@ -6,9 +6,9 @@
         }
     },
     "spec": {
-        "solution": "talker-listener-xarchive:1",
+        "solution": "talker-listener-xarchive-v-1:1",
         "target": {
-            "name": "test-robot-debug"
+            "name": "muto-device-001"
         }
     }
 }

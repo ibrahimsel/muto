@@ -1,17 +1,11 @@
 {
-  "name": "Muto Simple Talker-Listener Stack",
-  "context": "eteration_office",
-  "stackId": "org.eclipse.muto.sandbox:talker_listener",
-  "node": [
-    {
-      "name": "talker",
-      "pkg": "demo_nodes_cpp",
-      "exec": "talker"
-    },
-    {
-      "name": "listener",
-      "pkg": "demo_nodes_cpp",
-      "exec": "listener"
-    }
-  ]
+  "name": "demo-stack",
+  "version": "1.0.0",
+  "artifact_uri": "http://localhost:8000/sample-stack-1.0.0.tar.gz",
+  "checksum": "sha256:bab497f08438ae53c76b4cbb38d5bef1662c4692aa8b6325f14371a8602f46f7",
+  "start_command": "ros2 launch talker-listener talker-listener.launch.py",
+  "working_directory": ".",
+  "environment": {
+    "ROS_DOMAIN_ID": "42"
+  }
 }

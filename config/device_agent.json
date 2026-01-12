@@ -1,0 +1,37 @@
+{
+  "device_id": "muto-device-001",
+  "storage": {
+    "root_dir": "/tmp/muto",
+    "keep_releases": 2
+  },
+  "downloads": {
+    "retries": 3,
+    "timeout_seconds": 60,
+    "backoff_seconds": 2.0
+  },
+  "executor": {
+    "start_grace_seconds": 10,
+    "stop_timeout_seconds": 10
+  },
+  "symphony": {
+    "enabled": true,
+    "topic_prefix": "symphony",
+    "request_topic": "coa-request",
+    "response_topic": "coa-response",
+    "api_url": "http://localhost:8082/v1alpha2/",
+    "provider_name": "providers.target.mqtt",
+    "broker_address": "tcp://mosquitto:1883",
+    "client_id": "symphony",
+    "timeout_seconds": 30,
+    "auto_register": true,
+    "target_name": "muto-device-001",
+    "mqtt": {
+      "host": "localhost",
+      "port": 1883,
+      "keep_alive": 60,
+      "user": "admin",
+      "password": "",
+      "name": "muto-device-001"
+    }
+  }
+}

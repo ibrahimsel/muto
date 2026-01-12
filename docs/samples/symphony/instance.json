@@ -8,7 +8,7 @@
     "spec": {
         "solution": "talker-listener:1",
         "target": {
-            "name": "test-robot-debug"
+            "name": "muto-device-001"
         }
     }
 }

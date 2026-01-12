@@ -4,7 +4,7 @@ build
 install
 log
 .pytest_cache
-.vscode
+.vscode/
 .DS_Store
 .idea
 *.swp

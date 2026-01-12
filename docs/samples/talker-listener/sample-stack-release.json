@@ -1,0 +1,8 @@
+{
+  "name": "sample-stack",
+  "version": "1.0.0",
+  "artifact_uri": "https://artifacts.example.com/sample-stack-1.0.0.tar.gz",
+  "checksum": "sha256:bab497f08438ae53c76b4cbb38d5bef1662c4692aa8b6325f14371a8602f46f7",
+  "start_command": "./run.sh",
+  "working_directory": "."
+}

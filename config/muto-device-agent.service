@@ -1,0 +1,14 @@
+[Unit]
+Description=Eclipse Muto Device Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment=MUTO_CONFIG=/etc/muto/device_agent.json
+ExecStart=/usr/bin/muto_device_agent
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

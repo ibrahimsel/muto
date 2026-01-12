@@ -1,21 +1,11 @@
 {
-  "metadata": {
-    "name": "Muto Simple Talker-Listener Stack",
-    "description": "A simple talker-listener stack example using demo_nodes_cpp package.",
-    "content_type": "stack/json"
-  },
-  "launch": {
-      "node": [
-        {
-          "name": "talker",
-          "pkg": "demo_nodes_cpp",
-          "exec": "talker"
-        },
-        {
-          "name": "listener",
-          "pkg": "demo_nodes_cpp",
-          "exec": "listener"
-        }
-      ]
+  "name": "demo-stack",
+  "version": "1.0.0",
+  "artifact_uri": "https://artifacts.example.com/demo-stack-1.0.0.tar.gz",
+  "checksum": "sha256:8c4f0d3e1e9b1a8f2c2c9c7a3f4d5b6a9e8f7c6d5b4a3a2f1e0d9c8b7a6",
+  "start_command": "./run.sh",
+  "working_directory": ".",
+  "environment": {
+    "ROS_DOMAIN_ID": "42"
   }
 }

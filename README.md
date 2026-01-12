@@ -4,46 +4,35 @@
 
 ## Overview
 
-**Eclipse Muto** is an open-source, declarative orchestrator for managing ROS (Robot Operating System) software stacks on edge devices. It is an approach to robotics infrastructure management, enabling cloud-native orchestration of distributed ROS systems while maintaining the real-time performance and deterministic behavior required for robotic applications.
-
-It is designed to provide an an adaptive framework and that allows for dynamically composable model-driven software stacks for ROS during runtime. This allows Muto to modify the software solution to address some of the runtime adaptivity challenges in autonomous and robotic platforms based on policies or current context.
-
+**Eclipse Muto** is an open-source deployment orchestrator that lets you bulk deploy, switch, and rollback **versioned ROS2 workspace artifacts** across edge devices **without SSH**. Muto treats user software as an opaque archive: you version it, compress it, and provide start/stop commands. Muto handles distribution, atomic activation, rollback, and observability.
 
 ## What Makes Muto Unique
 
-Eclipse Muto bridges the gap between traditional ROS development and modern cloud-native orchestration by providing a **model-based approach** to robot software management. Unlike conventional deployment methods that require manual intervention and physical access to devices, Muto enables declarative stack definitions that can be managed, versioned, and deployed remotely across entire robot fleets.
-
-It is Adaptive; Muto is a context aware software solution to address some of the runtime adaptivity challenges in autonomous and robotic platforms. Adaptive Muto stacks support connected architectures for autonomous and software-defined vehicles, including supporting cloud-based apps and services that can dynamically change.
-
-It is Extensible; Muto is built on an extensible architecture. Similar to plugins and the extension points that are foundational to Eclipse extensibility. many of Muto's functionality are implemented as plugins that you can easily replace and modify for your requirements. You can add new ROS nodes for controlling, monitoring, composing and adapting vehicle behavior as plugins.
-
+Muto replaces manual SSH + file copying + restarts with **versioned artifacts**, **atomic activation**, and **automatic rollback**. It uses **Eclipse Symphony** as its control plane and a lightweight device agent for install/execute on each target.
 
 ## Key Features
 
-- **Declarative ROS Orchestration**: Transform traditional imperative ROS launch systems into declarative, serializable formats
-- **Remote Fleet Management**: Centralized control and deployment of software stacks across robot fleets
-- **Model-Based Approach**: Complete ROS logic preservation while enabling remote management at scale
-- **Multi-Protocol Support**: MQTT, HTTP, and future support for Zenoh and uProtocol
-- **Digital Twin Integration**: Eclipse Ditto integration for device representation and synchronization
-- **Cloud Orchestration**: Eclipse Symphony integration for scalable, policy-driven fleet management
-- **Container Support**: Docker/Podman deployment for consistent environments across architectures (planned)
-- **Extensible Plugin Architecture**: Customizable components for various use cases
+- **Opaque artifacts**: Deploy `.tar.gz` (or similar) ROS2 workspaces without refactoring
+- **Atomic installation**: Crash-safe installs with `current`/`previous` symlinks
+- **Automatic rollback**: Revert on start failures or early exits
+- **Bulk deployment**: One command updates fleets, devices reconcile independently
+- **Observability**: Report running version, state, failure reason, and timestamps
+- **No SSH required**: All orchestration flows through Symphony + MQTT
 
 ## Repository Structure
 
 ```
 ├── README.md                     # This file
-├── docs/                      # Complete documentation suite
-│   ├── project_overview.md      # Detailed project overview and architecture
+├── docs/                      # Documentation
+│   ├── project_overview.md      # Architecture and product definition
 │   ├── user_guide/               # User documentation and guides
 │   ├── developer_guide/          # Developer documentation
-│   ├── examples/                 # Examples and sample implementations
 │   └── reference/                # Technical reference documentation
 ├── src/                          # Source code
-│   ├── agent/                    # Muto Agent - device communication and orchestration
-│   ├── composer/                 # Muto Composer - ROS stack management and reconciliation
-│   ├── core/                     # Core services and digital twin implementation
-│   └── messages/                 # ROS message definitions and service interfaces
+│   ├── agent/                    # Device agent (install/activate/rollback)
+│   ├── composer/                 # JSON model composition helpers
+│   ├── core/                     # Legacy ROS services (not used in v1)
+│   └── messages/                 # Legacy ROS message definitions
 ├── config/                       # Muto Configuration example files
 └── launch/                       # Muto ROS launch  example files
 ```
@@ -67,11 +56,10 @@ All folder under the src/ folder are [GIT modules](https://git-scm.com/docs/gitm
 
 ## Target Use Cases
 
-- **Autonomous Vehicle Fleets**: Centralized management of software stacks across vehicle fleets
-- **Industrial Robotics**: Coordinated updates and configuration management for factory robots
-- **Service Robotics**: Remote deployment and monitoring of service robot applications
-- **Research & Development**: Rapid prototyping and deployment of experimental ROS stacks
-- **Edge Computing**: Integration of robotic systems with edge computing infrastructure
+- **Autonomous Vehicle Fleets**: Bulk updates and rollback safety across fleets
+- **Industrial Robotics**: Remote updates without SSH or manual intervention
+- **Service Robotics**: Versioned release delivery with reliable rollback
+- **R&D**: Fast iteration on ROS2 workspaces with consistent deployment semantics
 
 ## License
 
@@ -93,7 +81,3 @@ We welcome contributions to Eclipse Muto! Please see our [Developer Guide](./doc
 - **GitHub Repository**: [https://github.com/eclipse-muto/muto](https://github.com/eclipse-muto/muto)
 - **Eclipse Foundation Project Page**: [https://projects.eclipse.org/projects/automotive.muto](https://projects.eclipse.org/projects/automotive.muto)
 - **Issue Tracker**: [GitHub Issues](https://github.com/eclipse-muto/muto/issues)
-
----
-
-**Ready to get started?** Choose your preferred deployment approach from the links above!
