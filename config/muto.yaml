@@ -9,8 +9,20 @@
     thing_messages_topic: "thing_messages"
     ignored_packages: [""]
 
-
     twin_url: "https://ditto:ditto@sandbox.composiv.ai"
+
+    # Authentication configuration for device registration
+    auth_method: "basic"
+    # auth_method: "jwt"
+
+    # JWT authentication settings (only used when auth_method is "jwt")
+    # These can also be set via environment variables (see .env.example in the project root)
+    auth_url: ""
+    auth_client_id: ""
+    auth_client_secret: ""
+    auth_username: ""
+    auth_password: ""
+
     host: sandbox.composiv.ai
     port: 1883
     keep_alive: 60
