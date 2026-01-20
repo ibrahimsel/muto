@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "name": "gap_follower_fast",
+    "description": "Gap Follower - Fast variant (MAX_SPEED=2.0) - INTENTIONALLY FAILS FOR ROLLBACK DEMO",
+    "content_type": "stack/archive",
+    "version": "0.0.3"
+  },
+  "launch": {
+    "url": "http://localhost:8080/gap_follower_fast.tar.gz",
+    "properties": {
+      "algorithm": "sha256",
+      "checksum": "d40a9e6a03776f1e0c95edd88ad8470ee56be1cde9ef55b72f5f1dc99c0cfd7c",
+      "launch_file": "src/gap_follower/launch/gap_follow_fast.launch.py",
+      "flatten": true
+    }
+  }
+}

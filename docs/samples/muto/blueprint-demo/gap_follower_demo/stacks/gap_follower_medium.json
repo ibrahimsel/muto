@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "name": "gap_follower_medium",
+    "description": "Gap Follower - Medium variant (MAX_SPEED=1.0)",
+    "content_type": "stack/archive",
+    "version": "0.0.2"
+  },
+  "launch": {
+    "url": "http://localhost:8080/gap_follower_medium.tar.gz",
+    "properties": {
+      "algorithm": "sha256",
+      "checksum": "981c546215c7bdad4b8ecc4402be449602ea4e270a35f56428393ab27362745f",
+      "launch_file": "src/gap_follower/launch/gap_follow.launch.py",
+      "flatten": true
+    }
+  }
+}

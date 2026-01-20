@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# Gap Follower - SLOW variant
+# MAX_SPEED=0.5, MIN_SPEED=0.3
+#
+
+set -e
+
+echo "=== Gap Follower SLOW Variant ==="
+echo "MAX_SPEED: 0.5 m/s"
+echo "MIN_SPEED: 0.3 m/s"
+
+# Source ROS environment
+source /opt/ros/humble/setup.bash
+
+# Build the workspace if not already built
+if [ ! -d "install" ]; then
+    echo "Building workspace..."
+    colcon build --symlink-install
+fi
+
+# Source the workspace
+source install/setup.bash
+
+# Export parameters as environment variables
+export GAP_FOLLOWER_MAX_SPEED=0.5
+export GAP_FOLLOWER_MIN_SPEED=0.3
+
+echo "Starting gap_follower node (slow)..."
+ros2 run gap_follower gap_follower

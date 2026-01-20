@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "name": "gap_follower_slow",
+    "description": "Gap Follower - Slow variant (MAX_SPEED=0.5)",
+    "content_type": "stack/archive",
+    "version": "0.0.1"
+  },
+  "launch": {
+    "url": "http://localhost:8080/gap_follower_slow.tar.gz",
+    "properties": {
+      "algorithm": "sha256",
+      "checksum": "9049ed56d998a68022d84adfc1c6adabf5c2b7b089d24c973acf249ff887e53a",
+      "launch_file": "src/gap_follower/launch/gap_follow.launch.py",
+      "flatten": true
+    }
+  }
+}
