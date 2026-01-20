@@ -1,0 +1,21 @@
+repositories:
+  agent:
+    type: git
+    url: https://github.com/ibrahimsel/agent.git
+    version: fix/component-registry
+  messages:
+    type: git
+    url: https://github.com/eclipse-muto/messages.git
+    version: main
+  core:
+    type: git
+    url: https://github.com/eclipse-muto/core.git
+    version: main
+  composer:
+    type: git
+    url: https://github.com/ibrahimsel/composer.git
+    version: test/e2e-blueprint
+  ros-racer:
+    type: git
+    url: https://github.com/ibrahimsel/ros-racer.git
+    version: test/e2e-demo
