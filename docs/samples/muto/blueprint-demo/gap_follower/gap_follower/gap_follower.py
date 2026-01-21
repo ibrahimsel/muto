@@ -10,171 +10,188 @@
 # Contributors:
 #   Composiv.ai - initial API and implementation
 #
-# Optimized for racing on Spielberg (Red Bull Ring) track
-# Track: ~1.7-2.9m wide, sweeping curves, long straights, 0.058m/pixel resolution
-# Vehicle: 0.2m wide, 0.33m wheelbase, collision threshold 0.21m
+# Follow The Gap algorithm with proper bicycle-model steering geometry
+# Uses Pure Pursuit style steering conversion + hysteresis + rate limiting
+# Optimized for F1TENTH racing on Spielberg (Red Bull Ring) track
 #
 
 import rclpy
 import numpy as np
 import math
 import os
+from typing import Optional, Tuple
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 
-# Read parameters from environment variables with defaults optimized for Spielberg racing
+# =============================================================================
+# ENVIRONMENT PARAMETERS - Tune these for different driving styles
+# =============================================================================
+
+# Speed limits
 MAX_SPEED = float(os.environ.get('GAP_FOLLOWER_MAX_SPEED', '3.0'))
 MIN_SPEED = float(os.environ.get('GAP_FOLLOWER_MIN_SPEED', '1.0'))
-ANGLE_GAIN = float(os.environ.get('GAP_FOLLOWER_ANGLE_GAIN', '1.2'))
-# For wider racing track, moderate safe_gap
+
+# Gap detection
 SAFE_GAP = float(os.environ.get('GAP_FOLLOWER_SAFE_GAP', '0.8'))
-# Bubble just larger than collision threshold (0.21m)
 BUBBLE_RADIUS = float(os.environ.get('GAP_FOLLOWER_BUBBLE_RADIUS', '0.25'))
-# Emergency brake distance
-FRONT_DISTANCE_THRESHOLD = float(os.environ.get('GAP_FOLLOWER_FRONT_THRESHOLD', '0.4'))
-# Start slowing down distance - longer for higher speeds
-SLOWDOWN_DISTANCE = float(os.environ.get('GAP_FOLLOWER_SLOWDOWN_DIST', '2.0'))
-# Steering smoothing factor (0=no smoothing, 1=max smoothing) - smoother for racing
-STEER_SMOOTH = float(os.environ.get('GAP_FOLLOWER_STEER_SMOOTH', '0.4'))
-# Car width for disparity extender
 CAR_WIDTH = float(os.environ.get('GAP_FOLLOWER_CAR_WIDTH', '0.25'))
 
-FOV = math.radians(270)  # the lidar in gym is 270 degrees
+# Emergency thresholds
+FRONT_DISTANCE_THRESHOLD = float(os.environ.get('GAP_FOLLOWER_FRONT_THRESHOLD', '0.4'))
+SLOWDOWN_DISTANCE = float(os.environ.get('GAP_FOLLOWER_SLOWDOWN_DIST', '2.0'))
+
+# Bicycle model parameters
+WHEELBASE = float(os.environ.get('GAP_FOLLOWER_WHEELBASE', '0.33'))
+LOOKAHEAD_MIN = float(os.environ.get('GAP_FOLLOWER_LOOKAHEAD_MIN', '0.8'))
+LOOKAHEAD_MAX = float(os.environ.get('GAP_FOLLOWER_LOOKAHEAD_MAX', '3.0'))
+
+# Steering control
+ANGLE_GAIN = float(os.environ.get('GAP_FOLLOWER_ANGLE_GAIN', '1.0'))
+STEER_SMOOTH = float(os.environ.get('GAP_FOLLOWER_STEER_SMOOTH', '0.3'))
+STEER_RATE_LIMIT = float(os.environ.get('GAP_FOLLOWER_STEER_RATE', '4.0'))  # rad/s
+
+# Target hysteresis - prevents target from jumping around
+TARGET_JUMP_MAX_IDX = int(os.environ.get('GAP_FOLLOWER_TARGET_JUMP_MAX', '20'))
+TARGET_HYSTERESIS_BONUS = float(os.environ.get('GAP_FOLLOWER_HYSTERESIS_BONUS', '0.15'))
+
+# Physical limits
+MAX_STEERING_ANGLE = 0.4189  # ~24 degrees, typical for F1TENTH
+
+FOV = math.radians(270)  # lidar FOV
 HALF_FOV = FOV / 2
 
 
-def preprocess_lidar(ranges):
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+def clamp(v: float, lo: float, hi: float) -> float:
+    """Clamp a value to [lo, hi]."""
+    return max(lo, min(hi, v))
+
+
+def preprocess_lidar(ranges) -> np.ndarray:
     """Clean up lidar data - replace invalid readings."""
     arr = np.array(ranges, dtype=np.float64)
-    # Replace inf/nan with max range (30m)
     arr = np.where(np.isfinite(arr), arr, 30.0)
-    # Clip to reasonable range
     arr = np.clip(arr, 0.0, 30.0)
     return arr
 
 
-def apply_safety_bubble(ranges, closest_idx, bubble_radius, angle_inc):
+def apply_safety_bubble(ranges: np.ndarray, closest_idx: int,
+                        bubble_radius: float, angle_inc: float) -> np.ndarray:
     """Zero out points around the closest obstacle."""
-    if closest_idx < 0:
+    if closest_idx < 0 or closest_idx >= len(ranges):
         return ranges
 
     result = ranges.copy()
     n = len(ranges)
 
-    # Calculate how many indices the bubble covers
-    bubble_indices = int(bubble_radius / (ranges[closest_idx] * angle_inc + 0.001)) + 1
-    bubble_indices = min(bubble_indices, 50)  # Cap to prevent excessive zeroing
+    # Calculate bubble size based on distance
+    dist = ranges[closest_idx]
+    if dist > 0.01:
+        bubble_indices = int(bubble_radius / (dist * angle_inc + 0.001)) + 1
+        bubble_indices = min(bubble_indices, 50)
 
-    start = max(0, closest_idx - bubble_indices)
-    end = min(n, closest_idx + bubble_indices + 1)
-    result[start:end] = 0.0
+        start = max(0, closest_idx - bubble_indices)
+        end = min(n, closest_idx + bubble_indices + 1)
+        result[start:end] = 0.0
 
     return result
 
 
-def apply_disparity_extender(ranges, angle_inc, car_width):
+def apply_disparity_extender(ranges: np.ndarray, angle_inc: float,
+                             car_width: float) -> np.ndarray:
     """Extend obstacles at disparity points to prevent corner clipping."""
     extended = ranges.copy()
     n = len(ranges)
-
-    # Disparity threshold - detect significant depth changes
-    disparity_threshold = 0.3  # meters
+    disparity_threshold = 0.3
 
     for i in range(1, n):
-        diff = ranges[i] - ranges[i-1]
+        diff = ranges[i] - ranges[i - 1]
         if abs(diff) > disparity_threshold:
-            # Found a disparity - extend the closer point
-            closer_dist = min(ranges[i], ranges[i-1])
+            closer_dist = min(ranges[i], ranges[i - 1])
             if closer_dist > 0.1:
-                # Calculate extension based on car width and distance
                 extend_angle = math.atan2(car_width, closer_dist)
                 extend_indices = int(extend_angle / angle_inc) + 1
 
-                # Extend into the gap (towards the farther reading)
-                if diff > 0:  # ranges[i] is farther, extend forward
+                if diff > 0:
                     for j in range(i, min(n, i + extend_indices)):
                         extended[j] = min(extended[j], closer_dist)
-                else:  # ranges[i-1] is farther, extend backward
+                else:
                     for j in range(max(0, i - extend_indices), i):
                         extended[j] = min(extended[j], closer_dist)
 
     return extended
 
 
-def find_best_gap(ranges, angle_min, angle_inc, safe_gap):
+# =============================================================================
+# GAP FINDING - Returns target INDEX (not angle) for hysteresis
+# =============================================================================
+
+def find_best_gap_index(ranges: np.ndarray, safe_gap: float) -> Tuple[int, float]:
     """
-    Find the best gap using the Follow the Gap method.
-    Optimized for tight corridors - finds the deepest point in the widest safe gap.
+    Find the best gap and return target index + depth.
+    Returns index instead of angle to enable hysteresis.
     """
     n = len(ranges)
-
-    # Find all points that exceed safe_gap threshold
     safe_mask = ranges > safe_gap
 
-    if not safe_mask.any():
-        # No safe gaps - head towards the farthest visible point
-        best_idx = np.argmax(ranges)
-        return angle_min + best_idx * angle_inc, ranges[best_idx]
+    if not np.any(safe_mask):
+        # No safe gaps - head towards farthest point
+        idx = int(np.argmax(ranges))
+        return idx, float(ranges[idx])
 
     # Find contiguous safe regions
-    # Pad with False to detect edges properly
     padded = np.concatenate([[False], safe_mask, [False]])
-    diff = np.diff(padded.astype(int))
+    diff = np.diff(padded.astype(np.int32))
     starts = np.where(diff == 1)[0]
     ends = np.where(diff == -1)[0]
 
     if len(starts) == 0:
-        best_idx = np.argmax(ranges)
-        return angle_min + best_idx * angle_inc, ranges[best_idx]
+        idx = int(np.argmax(ranges))
+        return idx, float(ranges[idx])
 
-    # Score each gap by: width * max_depth
-    # This prefers wide gaps but also considers depth
-    best_score = -1
-    best_gap_start = 0
-    best_gap_end = 0
+    # Score each gap: width * (1 + depth * 0.5)
+    best_score = -1.0
+    best_start = 0
+    best_end = 0
 
-    for start, end in zip(starts, ends):
-        width = end - start
-        gap_ranges = ranges[start:end]
-        max_depth = np.max(gap_ranges) if len(gap_ranges) > 0 else 0
-
-        # Score: prioritize width but reward depth
-        score = width * (1.0 + max_depth * 0.5)
+    for s, e in zip(starts, ends):
+        width = int(e - s)
+        if width <= 0:
+            continue
+        seg = ranges[int(s):int(e)]
+        max_depth = float(np.max(seg)) if seg.size > 0 else 0.0
+        score = float(width) * (1.0 + max_depth * 0.5)
 
         if score > best_score:
             best_score = score
-            best_gap_start = start
-            best_gap_end = end
+            best_start = int(s)
+            best_end = int(e)
 
-    if best_gap_end <= best_gap_start:
-        best_idx = np.argmax(ranges)
-        return angle_min + best_idx * angle_inc, ranges[best_idx]
+    if best_end <= best_start:
+        idx = int(np.argmax(ranges))
+        return idx, float(ranges[idx])
 
-    # Find the deepest point in the best gap
-    gap_ranges = ranges[best_gap_start:best_gap_end]
-    deepest_in_gap = np.argmax(gap_ranges)
-    deepest_idx = best_gap_start + deepest_in_gap
+    # Blend between deepest point and center for stability
+    seg = ranges[best_start:best_end]
+    deepest_local = int(np.argmax(seg))
+    deepest_idx = best_start + deepest_local
+    center_idx = (best_start + best_end) // 2
 
-    # Also compute center of gap
-    center_idx = (best_gap_start + best_gap_end) // 2
+    blend = 0.6
+    idx = int(blend * deepest_idx + (1.0 - blend) * center_idx)
+    idx = max(best_start, min(best_end - 1, idx))
 
-    # Blend: favor the deepest point but bias towards center for stability
-    # More aggressive = favor deepest point more
-    blend = 0.6  # 60% deepest, 40% center
-    target_idx = int(blend * deepest_idx + (1 - blend) * center_idx)
-    target_idx = max(best_gap_start, min(best_gap_end - 1, target_idx))
-
-    target_angle = angle_min + target_idx * angle_inc
-    return target_angle, ranges[target_idx]
+    return idx, float(ranges[idx])
 
 
-def get_front_distance(ranges, angle_inc):
-    """Get minimum distance in a narrow front cone."""
+def get_front_distance(ranges: np.ndarray, angle_inc: float) -> float:
+    """Get minimum distance in a narrow front cone (+/- 15 degrees)."""
     n = len(ranges)
     center = n // 2
-
-    # Narrow cone: +/- 15 degrees for tight corridor racing
     cone_angle = math.radians(15)
     cone_indices = int(cone_angle / angle_inc)
 
@@ -184,48 +201,70 @@ def get_front_distance(ranges, angle_inc):
     front = ranges[start:end]
     valid = front[front > 0.1]
 
-    if len(valid) == 0:
-        return 30.0
-    return np.min(valid)
+    return float(np.min(valid)) if len(valid) > 0 else 30.0
 
 
-def get_side_distances(ranges, angle_inc):
-    """Get distances to left and right sides for wall following bias."""
+def get_side_distances(ranges: np.ndarray, angle_inc: float) -> Tuple[float, float]:
+    """Get average distances to left and right sides."""
     n = len(ranges)
 
-    # Left side: around 90 degrees from center
-    left_angle = math.radians(90)
-    left_idx = int((HALF_FOV + left_angle) / angle_inc)
+    left_idx = int((HALF_FOV + math.radians(90)) / angle_inc)
     left_idx = min(n - 1, max(0, left_idx))
 
-    # Right side: around -90 degrees from center
-    right_angle = math.radians(-90)
-    right_idx = int((HALF_FOV + right_angle) / angle_inc)
+    right_idx = int((HALF_FOV - math.radians(90)) / angle_inc)
     right_idx = min(n - 1, max(0, right_idx))
 
-    # Average a few points around each side
     window = 20
-    left_start = max(0, left_idx - window)
-    left_end = min(n, left_idx + window)
-    right_start = max(0, right_idx - window)
-    right_end = min(n, right_idx + window)
+    left_dist = np.mean(ranges[max(0, left_idx - window):min(n, left_idx + window)])
+    right_dist = np.mean(ranges[max(0, right_idx - window):min(n, right_idx + window)])
 
-    left_dist = np.mean(ranges[left_start:left_end])
-    right_dist = np.mean(ranges[right_start:right_end])
+    return float(left_dist), float(right_dist)
 
-    return left_dist, right_dist
 
+# =============================================================================
+# STEERING GEOMETRY - Bicycle model Pure Pursuit
+# =============================================================================
+
+def steering_from_target(alpha_rad: float, lookahead_m: float,
+                         wheelbase_m: float) -> float:
+    """
+    Compute Ackermann steering angle from a target direction using bicycle model.
+
+    This is the Pure Pursuit formula:
+        delta = atan2(2 * L * sin(alpha), Ld)
+
+    Where:
+        L = wheelbase
+        alpha = target angle relative to vehicle forward
+        Ld = lookahead distance
+
+    This converts "point at that direction" into proper Ackermann steering.
+    """
+    ld = max(0.05, lookahead_m)
+    return math.atan2(2.0 * wheelbase_m * math.sin(alpha_rad), ld)
+
+
+def rate_limit(prev: float, target: float, max_rate: float, dt: float) -> float:
+    """Rate-limit a signal to prevent sudden jumps."""
+    if dt <= 0.0:
+        return target
+    max_step = max_rate * dt
+    return prev + clamp(target - prev, -max_step, max_step)
+
+
+# =============================================================================
+# MAIN GAP FOLLOWER NODE
+# =============================================================================
 
 class GapFollower(Node):
     def __init__(self):
         self.hostname = os.uname()[1]
         super().__init__(f'{self.hostname}_gap_follower')
 
-        # Log the parameters being used
         self.get_logger().info(
-            f'Gap Follower [RACING MODE] starting with: '
-            f'MAX_SPEED={MAX_SPEED}, MIN_SPEED={MIN_SPEED}, '
-            f'SAFE_GAP={SAFE_GAP}, BUBBLE={BUBBLE_RADIUS}, GAIN={ANGLE_GAIN}'
+            f'Gap Follower [BICYCLE MODEL] starting with: '
+            f'MAX_SPEED={MAX_SPEED}, WHEELBASE={WHEELBASE}, '
+            f'LOOKAHEAD=[{LOOKAHEAD_MIN},{LOOKAHEAD_MAX}], RATE_LIMIT={STEER_RATE_LIMIT}'
         )
 
         self.drive_pub = self.create_publisher(
@@ -233,85 +272,107 @@ class GapFollower(Node):
         )
         self.create_subscription(LaserScan, f'/{self.hostname}/scan', self.cb, 1)
 
-        # State for smoothing
+        # State for smoothing and rate limiting
         self.last_steer = 0.0
         self.last_speed = MIN_SPEED
+        self.last_target_idx: Optional[int] = None
+        self.last_stamp_sec: Optional[float] = None
 
     def cb(self, scan):
-        # Preprocess lidar data
+        # Calculate dt for rate limiting
+        stamp_sec = float(scan.header.stamp.sec) + float(scan.header.stamp.nanosec) * 1e-9
+        dt = 0.0
+        if self.last_stamp_sec is not None:
+            dt = max(0.0, stamp_sec - self.last_stamp_sec)
+        self.last_stamp_sec = stamp_sec
+
+        # Preprocess lidar
         ranges = preprocess_lidar(scan.ranges)
         angle_inc = scan.angle_increment
+        angle_min = scan.angle_min
 
-        # Find closest point
-        closest_dist = np.min(ranges[ranges > 0.1]) if np.any(ranges > 0.1) else 30.0
-        closest_idx = np.argmin(np.where(ranges > 0.1, ranges, 100.0))
+        # Find and bubble the closest point
+        valid_mask = ranges > 0.1
+        if np.any(valid_mask):
+            closest_idx = int(np.argmin(np.where(valid_mask, ranges, 100.0)))
+        else:
+            closest_idx = len(ranges) // 2
 
-        # Apply safety bubble around closest point
         ranges = apply_safety_bubble(ranges, closest_idx, BUBBLE_RADIUS, angle_inc)
-
-        # Apply disparity extender
         ranges = apply_disparity_extender(ranges, angle_inc, CAR_WIDTH)
 
-        # Get front distance
+        # Get front distance for emergency handling
         front_dist = get_front_distance(ranges, angle_inc)
 
-        # Emergency stop if about to collide
+        # Emergency steering if too close
         if front_dist < FRONT_DISTANCE_THRESHOLD:
-            # Try to steer away from obstacle instead of stopping
-            left_dist, right_dist = get_side_distances(
-                preprocess_lidar(scan.ranges), angle_inc
-            )
-            if left_dist > right_dist:
-                emergency_steer = 0.4  # Turn left
-            else:
-                emergency_steer = -0.4  # Turn right
-
-            # Very slow speed during emergency
-            self.publish_drive(scan.header.stamp, emergency_steer * ANGLE_GAIN, MIN_SPEED * 0.5)
+            left_dist, right_dist = get_side_distances(preprocess_lidar(scan.ranges), angle_inc)
+            emergency_steer = 0.3 if left_dist > right_dist else -0.3
+            self.publish_drive(scan.header.stamp, emergency_steer, MIN_SPEED * 0.5)
             return
 
-        # Find best gap
-        steer_angle, gap_depth = find_best_gap(
-            ranges, scan.angle_min, angle_inc, SAFE_GAP
-        )
+        # Find best target INDEX (not angle yet)
+        target_idx, gap_depth = find_best_gap_index(ranges, SAFE_GAP)
 
-        # Smooth steering - less smoothing for more responsive racing
-        steer_angle = (1 - STEER_SMOOTH) * steer_angle + STEER_SMOOTH * self.last_steer
-        self.last_steer = steer_angle
+        # Apply target hysteresis - don't let target teleport
+        if self.last_target_idx is not None:
+            prev_idx = self.last_target_idx
+            prev_depth = float(ranges[prev_idx]) if 0 <= prev_idx < len(ranges) else 0.0
 
-        # Calculate speed based on multiple factors
-        # 1. Steering magnitude - slow down for turns
-        steer_magnitude = abs(steer_angle)
-        steer_factor = 1.0 - min(0.7, steer_magnitude / (HALF_FOV * 0.5))
+            jump = abs(target_idx - prev_idx)
+            # Only allow large jumps if new target is significantly better
+            if jump > TARGET_JUMP_MAX_IDX:
+                if gap_depth < prev_depth * (1.0 + TARGET_HYSTERESIS_BONUS):
+                    target_idx = prev_idx
+                    gap_depth = prev_depth
 
-        # 2. Front distance - slow down approaching walls
+        self.last_target_idx = target_idx
+
+        # Convert target index to target angle (relative to vehicle forward)
+        # Note: angle_min is typically negative (left side of FOV)
+        alpha = angle_min + target_idx * angle_inc
+
+        # Determine lookahead distance based on gap depth
+        lookahead = clamp(gap_depth, LOOKAHEAD_MIN, LOOKAHEAD_MAX)
+
+        # BICYCLE MODEL: Convert target angle to Ackermann steering
+        steer_cmd = steering_from_target(alpha, lookahead, WHEELBASE)
+
+        # Apply gain and clamp to physical limits
+        steer_cmd *= ANGLE_GAIN
+        steer_cmd = clamp(steer_cmd, -MAX_STEERING_ANGLE, MAX_STEERING_ANGLE)
+
+        # Smooth the steering command
+        steer_smoothed = (1.0 - STEER_SMOOTH) * steer_cmd + STEER_SMOOTH * self.last_steer
+
+        # Rate limit to prevent jerky steering
+        steer_final = rate_limit(self.last_steer, steer_smoothed, STEER_RATE_LIMIT, dt)
+        self.last_steer = steer_final
+
+        # Calculate speed based on steering magnitude and front distance
+        steer_magnitude = abs(steer_final)
+        steer_factor = 1.0 - min(0.6, steer_magnitude / MAX_STEERING_ANGLE)
+
         if front_dist < SLOWDOWN_DISTANCE:
-            dist_ratio = (front_dist - FRONT_DISTANCE_THRESHOLD) / (SLOWDOWN_DISTANCE - FRONT_DISTANCE_THRESHOLD)
-            dist_factor = max(0.2, min(1.0, dist_ratio))
+            dist_ratio = (front_dist - FRONT_DISTANCE_THRESHOLD) / \
+                         (SLOWDOWN_DISTANCE - FRONT_DISTANCE_THRESHOLD)
+            dist_factor = clamp(dist_ratio, 0.2, 1.0)
         else:
             dist_factor = 1.0
 
-        # 3. Gap depth - more confident with deeper gaps
+        # Depth confidence factor
         depth_factor = min(1.0, gap_depth / 2.0)
 
-        # Combine factors - use minimum for safety but weighted
         speed_factor = min(steer_factor, dist_factor) * (0.7 + 0.3 * depth_factor)
         target_speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED) * speed_factor
 
-        # Smooth speed changes slightly
-        speed = 0.7 * target_speed + 0.3 * self.last_speed
+        # Smooth speed changes
+        speed = 0.8 * target_speed + 0.2 * self.last_speed
         self.last_speed = speed
 
-        # Apply steering gain
-        final_steer = steer_angle * ANGLE_GAIN
+        self.publish_drive(scan.header.stamp, steer_final, speed)
 
-        # Clamp steering to physical limits
-        max_steer = 0.4189  # ~24 degrees, typical for F1TENTH
-        final_steer = max(-max_steer, min(max_steer, final_steer))
-
-        self.publish_drive(scan.header.stamp, final_steer, speed)
-
-    def publish_drive(self, stamp, steer, speed):
+    def publish_drive(self, stamp, steer: float, speed: float):
         msg = AckermannDriveStamped()
         msg.header.stamp = stamp
         msg.header.frame_id = f"{self.hostname}/base_link"
