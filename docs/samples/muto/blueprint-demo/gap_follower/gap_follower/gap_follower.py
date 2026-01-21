@@ -16,11 +16,12 @@ from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 
-MAX_SPEED = 1.5
-MIN_SPEED = 1.0
-ANGLE_GAIN = 1.7
-SAFE_GAP = 2.0          # m
-BUBBLE_RADIUS = 0.3     # m
+# Read parameters from environment variables with defaults
+MAX_SPEED = float(os.environ.get('GAP_FOLLOWER_MAX_SPEED', '1.5'))
+MIN_SPEED = float(os.environ.get('GAP_FOLLOWER_MIN_SPEED', '1.0'))
+ANGLE_GAIN = float(os.environ.get('GAP_FOLLOWER_ANGLE_GAIN', '1.7'))
+SAFE_GAP = float(os.environ.get('GAP_FOLLOWER_SAFE_GAP', '2.0'))  # m
+BUBBLE_RADIUS = 0.3     # m
 FOV = math.radians(270) # the lidar in gym is 270 degrees
 
 def best_gap(ranges, angle_min, angle_inc):
@@ -40,6 +41,8 @@ class GapFollower(Node):
     def __init__(self):
         self.hostname = os.uname()[1]
         super().__init__(f'{self.hostname}_gap_follower')
+        # Log the parameters being used
+        self.get_logger().info(f'Gap Follower starting with: MAX_SPEED={MAX_SPEED}, MIN_SPEED={MIN_SPEED}, SAFE_GAP={SAFE_GAP}')
         self.drive_pub = self.create_publisher(AckermannDriveStamped, f'/{self.hostname}/drive', 1)
         self.create_subscription(LaserScan, f'/{self.hostname}/scan', self.cb, 1)
 
