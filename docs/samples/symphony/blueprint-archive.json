@@ -1,0 +1,16 @@
+{
+    "artifact": {
+        "uri": "https://localhost:8082/gap_follower1.tar.gz",
+        "checksum": "sha256:8c4f0d3e1e9b1a8f2c2c9c7a3f4d5b6a9e8f7c6d5b4a3a2f1e0d9c8b7a6"
+    },
+    "runtime": {
+        "working_directory": ".",
+        "start_command": "./run.sh",
+        "stop_command": "pkill -f run.sh",
+        "environment": {
+        "ROS_DOMAIN_ID": "42",
+        "RMW_IMPLEMENTATION": "rmw_cyclonedds_cpp",
+        "LOG_LEVEL": "info"
+        }
+    }
+}

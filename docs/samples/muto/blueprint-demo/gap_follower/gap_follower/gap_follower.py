@@ -38,17 +38,17 @@ def best_gap(ranges, angle_min, angle_inc):
 
 class GapFollower(Node):
     def __init__(self):
-        hostname = os.uname()[1]
-        super().__init__(f'{hostname}_gap_follower')
-        self.drive_pub = self.create_publisher(AckermannDriveStamped, f'/{hostname}/drive', 1)
-        self.create_subscription(LaserScan, f'/{hostname}/scan', self.cb, 1)
+        self.hostname = os.uname()[1]
+        super().__init__(f'{self.hostname}_gap_follower')
+        self.drive_pub = self.create_publisher(AckermannDriveStamped, f'/{self.hostname}/drive', 1)
+        self.create_subscription(LaserScan, f'/{self.hostname}/scan', self.cb, 1)
 
     def cb(self, scan):
         steer = best_gap(scan.ranges, scan.angle_min, scan.angle_increment)
         speed = max(MIN_SPEED, MAX_SPEED * (1 - abs(steer)/ (FOV/2)))
         msg = AckermannDriveStamped()
         msg.header.stamp = scan.header.stamp
-        msg.header.frame_id = f"{self.ns}/base_link"
+        msg.header.frame_id = f"{self.hostname}/base_link"
         msg.drive.steering_angle = steer * ANGLE_GAIN
         msg.drive.speed = speed
         self.drive_pub.publish(msg)
