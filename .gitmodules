@@ -15,3 +15,7 @@
 	path = src/composer
 	url = https://github.com/eclipse-muto/composer.git
 	branch = main
+[submodule "docs/samples/muto/blueprint-demo/ros-racer"]
+	path = docs/samples/muto/blueprint-demo/ros-racer
+	url = https://github.com/ibrahimsel/ros-racer.git
+	branch = test/e2e-demo
