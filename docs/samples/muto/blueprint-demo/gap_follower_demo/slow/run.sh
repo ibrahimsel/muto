@@ -25,6 +25,7 @@ source install/setup.bash
 # Export parameters as environment variables
 export GAP_FOLLOWER_MAX_SPEED=0.5
 export GAP_FOLLOWER_MIN_SPEED=0.3
+export GAP_FOLLOWER_CAR_WIDTH=0.2032
 
 echo "Starting gap_follower node (slow)..."
 ros2 run gap_follower gap_follower

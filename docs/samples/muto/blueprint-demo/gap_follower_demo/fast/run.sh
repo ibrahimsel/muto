@@ -27,6 +27,7 @@ source install/setup.bash
 # Export parameters as environment variables
 export GAP_FOLLOWER_MAX_SPEED=2.0
 export GAP_FOLLOWER_MIN_SPEED=1.5
+export GAP_FOLLOWER_CAR_WIDTH=0.2032
 
 echo "Starting gap_follower node (fast)..."
 echo "Simulating startup..."
