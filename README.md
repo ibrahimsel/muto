@@ -1,5 +1,7 @@
 # Eclipse Muto
 
+[![CI](https://github.com/eclipse-muto/muto/actions/workflows/colcon-build.yaml/badge.svg)](https://github.com/eclipse-muto/muto/actions/workflows/colcon-build.yaml)
+
 <img src="./docs/images/muto.png" alt="Eclipse Muto Modules" title="Eclipse Muto Modules" width="30%" style="display: block; margin: auto; width: 30%;">
 
 ## Overview
