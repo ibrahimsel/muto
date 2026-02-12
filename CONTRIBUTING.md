@@ -114,9 +114,39 @@ colcon test --packages-select muto_agent muto_composer muto_core muto_msgs
 colcon test-result --verbose
 ```
 
+## Pre-commit Hooks
+
+Each repo (top-level and all submodules) has a `.pre-commit-config.yaml` that enforces:
+
+- **Ruff** lint + format (Python submodules only)
+- **Trailing whitespace** and **end-of-file** fixes
+- **YAML/XML** validation
+- **Conventional commit** message format
+
+### Setup
+
+Install hooks in each repo you work on:
+
+```bash
+# From the workspace root (for top-level repo)
+pre-commit install --hook-type commit-msg --hook-type pre-commit
+
+# For each submodule you commit to
+cd src/agent && pre-commit install --hook-type commit-msg --hook-type pre-commit
+cd src/composer && pre-commit install --hook-type commit-msg --hook-type pre-commit
+cd src/core && pre-commit install --hook-type commit-msg --hook-type pre-commit
+cd src/messages && pre-commit install --hook-type commit-msg --hook-type pre-commit
+```
+
+### Run manually on all files
+
+```bash
+pre-commit run --all-files
+```
+
 ## Commit Conventions
 
-We use [Conventional Commits](https://www.conventionalcommits.org/):
+We use [Conventional Commits](https://www.conventionalcommits.org/), enforced by pre-commit hooks:
 
 ```
 feat: add new feature
