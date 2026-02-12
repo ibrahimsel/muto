@@ -1,11 +1,12 @@
 # Eclipse Muto
 
-[![CI](https://github.com/eclipse-muto/muto/actions/workflows/colcon-build.yaml/badge.svg)](https://github.com/eclipse-muto/muto/actions/workflows/colcon-build.yaml)
-![ROS 2 Foxy](https://img.shields.io/badge/ROS%202-Foxy-blue)
-![ROS 2 Humble](https://img.shields.io/badge/ROS%202-Humble-blue)
-![ROS 2 Jazzy](https://img.shields.io/badge/ROS%202-Jazzy-blue)
-
 <img src="./docs/images/muto.png" alt="Eclipse Muto Modules" title="Eclipse Muto Modules" width="30%" style="display: block; margin: auto; width: 30%;">
+
+| ROS 2 Distro | Ubuntu | Python | Status |
+|---|---|---|---|
+| Foxy | 20.04 | 3.8 | [![Foxy](https://github.com/eclipse-muto/muto/actions/workflows/colcon-build.yaml/badge.svg)](https://github.com/eclipse-muto/muto/actions/workflows/colcon-build.yaml) |
+| Humble | 22.04 | 3.10 | [![Humble](https://github.com/eclipse-muto/muto/actions/workflows/colcon-build.yaml/badge.svg)](https://github.com/eclipse-muto/muto/actions/workflows/colcon-build.yaml) |
+| Jazzy | 24.04 | 3.12 | [![Jazzy](https://github.com/eclipse-muto/muto/actions/workflows/colcon-build.yaml/badge.svg)](https://github.com/eclipse-muto/muto/actions/workflows/colcon-build.yaml) |
 
 ## Overview
 
