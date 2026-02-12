@@ -108,7 +108,7 @@ Third-party files (Apache 2.0, MIT) retain their original headers.
 colcon build --packages-select muto_agent muto_composer muto_core muto_msgs eclipse_muto
 
 # Run tests
-colcon test --packages-select muto_agent muto_composer muto_core muto_msgs
+colcon test --packages-select muto_agent muto_composer muto_core
 
 # View test results
 colcon test-result --verbose
@@ -156,6 +156,35 @@ docs: documentation changes
 refactor: code restructuring without behavior change
 test: add or update tests
 ```
+
+## Changelog Management
+
+Each submodule maintains a `CHANGELOG.rst` (reStructuredText) as required by [REP 132](https://www.ros.org/reps/rep-0132.html) and bloom.
+
+### Updating the changelog
+
+After making changes, regenerate the changelog to pick up new commits:
+
+```bash
+cd src/agent
+catkin_generate_changelog
+```
+
+This appends new commits under a "Forthcoming" section. Edit the output to be human-readable before committing — consolidate related commits and remove noise (merge commits, WIP messages).
+
+### Release workflow
+
+When preparing a release, `catkin_prepare_release` will:
+1. Replace "Forthcoming" with the version number and date
+2. Bump the version in `package.xml` and `setup.py`
+3. Commit and tag
+
+```bash
+pip install catkin-pkg  # if not already in .venv
+catkin_prepare_release
+```
+
+> **Important:** CHANGELOG must be `.rst` format, not Markdown. This is required by bloom.
 
 ## Repository Structure
 
