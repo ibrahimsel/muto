@@ -9,7 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: osrf/ros:humble-desktop
+    container: ros:humble-ros-base
+    env:
+      PIP_BREAK_SYSTEM_PACKAGES: "1"
     outputs:
       test_coverage_url: ${{ steps.unittest_coverage_report_xml.outputs.artifact-url }}
     steps:
@@ -30,7 +32,7 @@ jobs:
         run: |
           cd /tmp/ws
           apt-get update -y
-          apt-get install -y python3-pip bc
+          apt-get install -y python3-pip python3-colcon-common-extensions git bc
           pip3 install coverage requests
           pip3 install src/muto/src/agent/symphony-sdk-python/
           rosdep update
