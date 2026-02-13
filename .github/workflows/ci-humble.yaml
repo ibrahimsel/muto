@@ -36,5 +36,6 @@ jobs:
         run: |
           . /opt/ros/humble/setup.sh
           . install/setup.sh
-          colcon test --packages-select muto_agent muto_composer muto_core muto_msgs --event-handlers console_direct+
+          colcon test --packages-select muto_msgs --event-handlers console_direct+
           colcon test-result --verbose
+          python -m pytest src/agent/test/ src/composer/test/ src/core/test/ -v
