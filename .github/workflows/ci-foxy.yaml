@@ -38,4 +38,4 @@ jobs:
           . install/setup.sh
           colcon test --packages-select muto_msgs --event-handlers console_direct+
           colcon test-result --verbose
-          python -m pytest src/agent/test/ src/composer/test/ src/core/test/ -v
+          python3 -m pytest src/agent/test/ src/composer/test/ src/core/test/ -v
