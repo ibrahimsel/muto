@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "name": "declarative-demo",
+    "description": "MEP-0001 demo: declarative stack with criticality",
+    "content_type": "stack/declarative",
+    "version": "1.0.0"
+  },
+  "launch": {
+    "node": [
+      {
+        "name": "talker",
+        "pkg": "demo_nodes_cpp",
+        "exec": "talker",
+        "namespace": "/demo",
+        "output": "screen",
+        "criticality": "mission",
+        "param": [
+          {"name": "frequency", "value": "2.0"}
+        ]
+      },
+      {
+        "name": "listener",
+        "pkg": "demo_nodes_cpp",
+        "exec": "listener",
+        "namespace": "/demo",
+        "output": "screen",
+        "criticality": "standard"
+      }
+    ]
+  }
+}

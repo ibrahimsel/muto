@@ -1,0 +1,26 @@
+{
+  "name": "legacy-composable-demo",
+  "context": "mep0001_demo",
+  "stackId": "org.eclipse.muto.demo:legacy-composable",
+  "composable": [
+    {
+      "name": "demo_container",
+      "namespace": "",
+      "package": "rclcpp_components",
+      "executable": "component_container",
+      "node": [
+        {
+          "pkg": "composition",
+          "plugin": "composition::Server",
+          "name": "server"
+        },
+        {
+          "pkg": "composition",
+          "plugin": "composition::Client",
+          "name": "client"
+        }
+      ]
+    }
+  ],
+  "node": []
+}

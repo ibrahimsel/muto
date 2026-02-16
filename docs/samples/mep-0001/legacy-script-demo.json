@@ -1,0 +1,7 @@
+{
+  "name": "legacy-script-demo",
+  "context": "mep0001_demo",
+  "stackId": "org.eclipse.muto.demo:legacy-script",
+  "on_start": "ros2 run demo_nodes_cpp talker",
+  "on_kill": "pkill -f 'demo_nodes_cpp.*talker'"
+}

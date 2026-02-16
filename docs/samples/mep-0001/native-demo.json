@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "name": "native-turtlesim-demo",
+    "description": "MEP-0001 demo: native stack launching locally-installed turtlesim",
+    "content_type": "stack/native",
+    "version": "1.0.0"
+  },
+  "launch": {
+    "file": "docs/samples/mep-0001/native_turtlesim.launch.py",
+    "args": {
+      "background_r": "100",
+      "background_g": "100",
+      "background_b": "200"
+    }
+  },
+  "source": {
+    "setup_files": []
+  },
+  "criticality_map": {
+    "/turtlesim": "mission",
+    "/teleop_turtle": "standard"
+  }
+}

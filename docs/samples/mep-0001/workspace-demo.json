@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "name": "workspace-demo",
+    "description": "MEP-0001 demo: workspace stack with learned baseline",
+    "content_type": "stack/workspace",
+    "version": "1.0.0"
+  },
+  "launch": {
+    "data": "<base64-encoded-tarball>",
+    "properties": {
+      "algorithm": "sha256",
+      "checksum": "<computed>",
+      "launch_file": "launch/talker_listener.launch.py",
+      "command": "launch",
+      "flatten": true
+    }
+  }
+}
