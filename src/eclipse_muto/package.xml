@@ -16,6 +16,7 @@
   <exec_depend>muto_agent</exec_depend>
   <exec_depend>muto_composer</exec_depend>
   <exec_depend>muto_core</exec_depend>
+  <exec_depend>muto_daemon</exec_depend>
   <exec_depend>muto_msgs</exec_depend>
 
   <export>
