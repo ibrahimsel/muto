@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update -y
-          apt-get install -y python3-pip python3-colcon-common-extensions python3-pytest git
+          apt-get install -y python3-pip python3-colcon-common-extensions python3-pytest git nlohmann-json3-dev
           . /opt/ros/jazzy/setup.sh
           rosdep update
           rosdep install --from-paths src --ignore-src -r -y --rosdistro jazzy
@@ -30,12 +30,12 @@ jobs:
       - name: Build
         run: |
           . /opt/ros/jazzy/setup.sh
-          colcon build --packages-select muto_msgs muto_core muto_agent muto_composer eclipse_muto
+          colcon build --packages-select muto_msgs muto_core muto_agent muto_composer muto_daemon eclipse_muto
 
       - name: Test
         run: |
           . /opt/ros/jazzy/setup.sh
           . install/setup.sh
-          colcon test --packages-select muto_msgs --event-handlers console_direct+
+          colcon test --packages-select muto_msgs muto_daemon --event-handlers console_direct+
           colcon test-result --verbose
           python3 -m pytest src/agent/test/ src/composer/test/ src/core/test/ -v
