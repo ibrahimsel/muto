@@ -25,7 +25,6 @@ jobs:
           . /opt/ros/foxy/setup.sh
           rosdep update
           rosdep install --from-paths src --ignore-src -r -y --rosdistro foxy
-          pip3 install src/agent/symphony-sdk-python/
 
       - name: Build
         run: |
