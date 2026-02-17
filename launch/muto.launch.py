@@ -189,6 +189,19 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', log_level]
     )
 
+    # Daemon (graph observation + drift detection)
+    node_daemon = Node(
+        namespace=muto_namespace,
+        name="muto_daemon",
+        package="muto_daemon",
+        executable="muto_daemon",
+        output="screen",
+        parameters=[
+            {"graph_observer_interval": 5.0},
+        ],
+        arguments=['--ros-args', '--log-level', log_level]
+    )
+
     symphony_provider = Node(
         namespace=muto_namespace,
         package='muto_agent',
@@ -222,6 +235,7 @@ def generate_launch_description():
     ld.add_action(node_compose_plugin)
     ld.add_action(node_provision_plugin)
     ld.add_action(node_launch_plugin)
+    ld.add_action(node_daemon)
     ld.add_action(symphony_provider)
 
     return ld
