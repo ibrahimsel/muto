@@ -55,7 +55,7 @@ jobs:
           cd src/muto/src/agent
           python3 -m coverage run --source=muto_agent -m unittest discover -s test -p "test_*.py"
           cd ../composer
-          python3 -m coverage run --source=muto_composer -m unittest discover -s test -p "test_*.py"
+          python3 -m coverage run --source=muto_composer -m pytest test/ --ignore=test/integration -q
           cd ../core
           python3 -m coverage run --source=muto_core -m unittest discover -s test -p "test_*.py"
           cd ..
