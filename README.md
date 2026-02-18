@@ -67,6 +67,7 @@ All folder under the src/ folder are [GIT modules](https://git-scm.com/docs/gitm
 - **[📖 User Guide](./docs/user_guide/readme.md)** - User documentation on how to configure and run Muto
 - **[🔧 Developer Guide](./docs/developer_guide/readme.md)** - Development and contribution guide
 - **[📚 Reference Documentation](./docs/reference/readme.md)** - Technical reference for all components
+- **[📦 Stack Types Reference](./docs/reference/composer/stacks.md)** - Stack types, manifest formats, lifecycle, and learn-from-deployment strategy
 
 ### 📝 Examples
 - **[🎯 Examples Overview](./docs/examples/readme.md)** - Muto examples and demonstration tutorials
