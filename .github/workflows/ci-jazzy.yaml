@@ -32,10 +32,18 @@ jobs:
           . /opt/ros/jazzy/setup.sh
           colcon build --packages-select muto_msgs muto_core muto_agent muto_composer muto_daemon eclipse_muto
 
-      - name: Test
+      - name: Unit Tests
         run: |
           . /opt/ros/jazzy/setup.sh
           . install/setup.sh
-          colcon test --packages-select muto_msgs muto_daemon --event-handlers console_direct+
+          colcon test --packages-select muto_msgs muto_daemon --event-handlers console_direct+ --ctest-args --label-exclude integration
           colcon test-result --verbose
           python3 -m pytest src/agent/test/ src/composer/test/ src/core/test/ -v --ignore=src/composer/test/integration
+
+      - name: Integration Tests (launch_testing)
+        if: false  # Enable when integration test infra is ready
+        run: |
+          . /opt/ros/jazzy/setup.sh
+          . install/setup.sh
+          colcon test --packages-select muto_daemon --event-handlers console_direct+ --ctest-args --label-regex integration
+          colcon test-result --verbose
