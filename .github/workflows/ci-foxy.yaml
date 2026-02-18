@@ -35,7 +35,7 @@ jobs:
         run: |
           . /opt/ros/foxy/setup.sh
           . install/setup.sh
-          colcon test --packages-select muto_msgs muto_daemon --event-handlers console_direct+ --ctest-args --label-exclude integration
+          colcon test --packages-select muto_msgs muto_daemon --event-handlers console_direct+ --ctest-args --exclude-regex ".*daemon_observation.*"
           colcon test-result --verbose
           python3 -m pytest src/agent/test/ src/composer/test/ src/core/test/ -v --ignore=src/composer/test/integration
 
@@ -44,5 +44,5 @@ jobs:
         run: |
           . /opt/ros/foxy/setup.sh
           . install/setup.sh
-          colcon test --packages-select muto_daemon --event-handlers console_direct+ --ctest-args --label-regex integration
+          colcon test --packages-select muto_daemon --event-handlers console_direct+ --ctest-args --tests-regex ".*daemon_observation.*"
           colcon test-result --verbose
