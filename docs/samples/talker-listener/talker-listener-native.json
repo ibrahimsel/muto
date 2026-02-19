@@ -1,0 +1,30 @@
+{
+  "thingId": "org.eclipse.muto.sandbox:talker_listener_native",
+  "policyId": "org.eclipse.muto.sandbox:talker_listener_native",
+  "definition": "org.eclipse.muto:Stack:0.0.1",
+  "attributes": {
+    "type": "simulator"
+  },
+  "features": {
+    "stack": {
+      "properties": {
+        "name": "Talker-Listener Native Stack",
+        "context": "eteration_office",
+        "stackId": "org.eclipse.muto.sandbox:talker_listener_native",
+        "launch": {
+          "file": "docs/samples/talker-listener/native_talker_listener.launch.py",
+          "args": {}
+        },
+        "source": {
+          "setup_files": []
+        },
+        "metadata": {
+          "name": "Talker-Listener Native",
+          "content_type": "stack/native",
+          "description": "Talker-listener launched from a local launch file using demo_nodes_cpp.",
+          "version": "1.0.0"
+        }
+      }
+    }
+  }
+}

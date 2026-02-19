@@ -1,0 +1,41 @@
+{
+  "thingId": "org.eclipse.muto.sandbox:talker_listener_declarative",
+  "policyId": "org.eclipse.muto.sandbox:talker_listener_declarative",
+  "definition": "org.eclipse.muto:Stack:0.0.1",
+  "attributes": {
+    "type": "simulator"
+  },
+  "features": {
+    "stack": {
+      "properties": {
+        "name": "Talker-Listener Declarative Stack",
+        "context": "eteration_office",
+        "stackId": "org.eclipse.muto.sandbox:talker_listener_declarative",
+        "launch": {
+          "node": [
+            {
+              "name": "talker",
+              "namespace": "/demo",
+              "pkg": "demo_nodes_cpp",
+              "exec": "talker",
+              "output": "screen"
+            },
+            {
+              "name": "listener",
+              "namespace": "/demo",
+              "pkg": "demo_nodes_cpp",
+              "exec": "listener",
+              "output": "screen"
+            }
+          ]
+        },
+        "metadata": {
+          "name": "Talker-Listener Declarative",
+          "content_type": "stack/declarative",
+          "description": "Talker-listener using inline node declarations with demo_nodes_cpp.",
+          "version": "1.0.0"
+        }
+      }
+    }
+  }
+}

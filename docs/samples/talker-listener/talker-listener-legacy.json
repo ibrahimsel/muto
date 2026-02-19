@@ -1,0 +1,35 @@
+{
+  "thingId": "org.eclipse.muto.sandbox:talker_listener_legacy",
+  "policyId": "org.eclipse.muto.sandbox:talker_listener_legacy",
+  "definition": "org.eclipse.muto:Stack:0.0.1",
+  "attributes": {
+    "type": "simulator"
+  },
+  "features": {
+    "stack": {
+      "properties": {
+        "name": "Talker-Listener Legacy Stack",
+        "context": "eteration_office",
+        "stackId": "org.eclipse.muto.sandbox:talker_listener_legacy",
+        "node": [
+          {
+            "name": "talker",
+            "pkg": "demo_nodes_cpp",
+            "exec": "talker"
+          },
+          {
+            "name": "listener",
+            "pkg": "demo_nodes_cpp",
+            "exec": "listener"
+          }
+        ],
+        "metadata": {
+          "name": "Talker-Listener Legacy",
+          "content_type": "stack/legacy",
+          "description": "Talker-listener using classic Ditto node-array format.",
+          "version": "1.0.0"
+        }
+      }
+    }
+  }
+}
